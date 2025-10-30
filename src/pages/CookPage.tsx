@@ -130,17 +130,17 @@ const CookPage = () => {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <Card className="flex-grow flex flex-col">
+          <div className="space-y-6">
+            <div className="space-y-6">
+              <Card>
                 <CardHeader>
                   <CardTitle>
                     {isActiveSession && currentStep ? `Step ${session.currentStepIndex + 1} of ${recipe.steps.length}` : "Ready to Cook"}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow">
+                <CardContent>
                   {isActiveSession && currentStep ? (
-                    <div className="flex flex-col md:flex-row items-center gap-6 h-full">
+                    <div className="flex flex-col md:flex-row items-center gap-6">
                       <div className="flex-shrink-0">
                         <CircularProgress progress={stepProgressPercent}>
                           <div className="text-center">
@@ -170,7 +170,7 @@ const CookPage = () => {
                       </div>
                     </div>
                   ) : (
-                     <div className="text-center py-8 flex flex-col justify-center items-center h-full">
+                     <div className="text-center py-8">
                         <p className="text-lg text-muted-foreground">Press 'Start Session' to begin cooking.</p>
                      </div>
                   )}
@@ -179,23 +179,21 @@ const CookPage = () => {
               <div className="flex justify-center">{renderControls()}</div>
             </div>
 
-            <Card className="flex flex-col">
+            <Card>
               <CardHeader><CardTitle>Timeline</CardTitle></CardHeader>
-              <CardContent className="flex-grow">
-                <div className="space-y-3">
-                  {recipe.steps.map((step, index) => {
-                    const isCompleted = isActiveSession && session.currentStepIndex > index;
-                    const isCurrent = isActiveSession && session.currentStepIndex === index;
-                    const Icon = isCompleted ? CheckCircle : isCurrent ? Circle : Dot;
-                    return (
-                      <div key={step.id} className={cn("flex items-center gap-3 text-sm", isCurrent && "font-bold", isCompleted && "text-muted-foreground line-through")}>
-                        <Icon className={cn("h-5 w-5 flex-shrink-0", isCurrent && "text-primary")} />
-                        <span className="flex-grow truncate">{step.description}</span>
-                        <span className="flex-shrink-0">{step.durationMinutes} min</span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <CardContent className="space-y-3">
+                {recipe.steps.map((step, index) => {
+                  const isCompleted = isActiveSession && session.currentStepIndex > index;
+                  const isCurrent = isActiveSession && session.currentStepIndex === index;
+                  const Icon = isCompleted ? CheckCircle : isCurrent ? Circle : Dot;
+                  return (
+                    <div key={step.id} className={cn("flex items-center gap-3 text-sm", isCurrent && "font-bold", isCompleted && "text-muted-foreground line-through")}>
+                      <Icon className={cn("h-5 w-5 flex-shrink-0", isCurrent && "text-primary")} />
+                      <span className="flex-grow truncate">{step.description}</span>
+                      <span className="flex-shrink-0">{step.durationMinutes} min</span>
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
