@@ -10,7 +10,7 @@ import { formatTime, cn } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import CircularProgress from '@/components/CircularProgress';
@@ -25,14 +25,12 @@ const CookPage = () => {
   const session = useSelector((state: RootState) => id ? state.session.byRecipeId[id] : undefined);
   const isActiveSession = useSelector((state: RootState) => state.session.activeRecipeId === id);
 
-  // Timer logic
   useInterval(() => {
     if (recipe && isActiveSession) {
       dispatch(tick({ recipe }));
     }
   }, session?.isRunning ? 1000 : null);
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space' && isActiveSession) {
@@ -57,14 +55,14 @@ const CookPage = () => {
   const currentStep = session ? recipe.steps[session.currentStepIndex] : null;
   const stepDurationSec = currentStep ? currentStep.durationMinutes * 60 : 0;
 
-  // Calculations
   const stepElapsedSec = session ? Math.max(0, stepDurationSec - session.stepRemainingSec) : 0;
   const stepProgressPercent = stepDurationSec > 0 ? Math.round((stepElapsedSec / stepDurationSec) * 100) : 0;
   
   const overallElapsedSec = session ? totalDurationSec - session.overallRemainingSec : 0;
   const overallProgressPercent = totalDurationSec > 0 ? Math.round((overallElapsedSec / totalDurationSec) * 100) : 0;
 
-  // Event Handlers
+  const isComplete = !isActiveSession && session;
+
   const handleStart = () => {
     const activeId = store.getState().session.activeRecipeId;
     if (activeId && activeId !== recipe.id) {
@@ -107,7 +105,6 @@ const CookPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
           <Button variant="ghost" asChild className="-ml-4">
@@ -124,90 +121,97 @@ const CookPage = () => {
         </Button>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Active Step Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {isActiveSession && currentStep ? `Step ${session.currentStepIndex + 1} of ${recipe.steps.length}` : "Ready to Cook"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex-shrink-0">
-                <CircularProgress progress={stepProgressPercent}>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold tracking-tighter">
-                      {formatTime(session?.stepRemainingSec ?? stepDurationSec)}
+      {isComplete ? (
+        <Card className="text-center p-8 flex flex-col items-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+            <h2 className="text-2xl font-bold">Recipe Complete!</h2>
+            <p className="text-muted-foreground mt-2">Well done! You've finished cooking "{recipe.title}".</p>
+            <Button onClick={handleEndSession} className="mt-6">Back to All Recipes</Button>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {isActiveSession && currentStep ? `Step ${session.currentStepIndex + 1} of ${recipe.steps.length}` : "Ready to Cook"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isActiveSession && currentStep ? (
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                      <div className="flex-shrink-0">
+                        <CircularProgress progress={stepProgressPercent}>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold tracking-tighter">
+                              {formatTime(session?.stepRemainingSec ?? stepDurationSec)}
+                            </div>
+                            <div className="text-sm text-muted-foreground">remaining</div>
+                          </div>
+                        </CircularProgress>
+                      </div>
+                      <div className="w-full">
+                        <p className="text-lg font-medium">{currentStep.description}</p>
+                        {currentStep.type === 'cooking' && currentStep.cookingSettings && (
+                          <div className="flex gap-4 mt-3">
+                            <Badge variant="secondary"><Thermometer className="mr-1.5 h-4 w-4" /> {currentStep.cookingSettings.temperature}°C</Badge>
+                            <Badge variant="secondary"><Wind className="mr-1.5 h-4 w-4" /> Speed {currentStep.cookingSettings.speed}</Badge>
+                          </div>
+                        )}
+                        {currentStep.type === 'instruction' && currentStep.ingredientIds && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {currentStep.ingredientIds.map(id => {
+                              const ing = recipe.ingredients.find(i => i.id === id);
+                              return ing ? <Badge key={id} variant="outline">{ing.name}</Badge> : null;
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">remaining</div>
-                  </div>
-                </CircularProgress>
-              </div>
-              <div className="w-full">
-                <p className="text-lg font-medium">{currentStep?.description ?? "Press 'Start Session' to begin."}</p>
-                {isActiveSession && currentStep?.type === 'cooking' && currentStep.cookingSettings && (
-                  <div className="flex gap-4 mt-3">
-                    <Badge variant="secondary"><Thermometer className="mr-1.5 h-4 w-4" /> {currentStep.cookingSettings.temperature}°C</Badge>
-                    <Badge variant="secondary"><Wind className="mr-1.5 h-4 w-4" /> Speed {currentStep.cookingSettings.speed}</Badge>
-                  </div>
-                )}
-                {isActiveSession && currentStep?.type === 'instruction' && currentStep.ingredientIds && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {currentStep.ingredientIds.map(id => {
-                      const ing = recipe.ingredients.find(i => i.id === id);
-                      return ing ? <Badge key={id} variant="outline">{ing.name}</Badge> : null;
-                    })}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          {/* Controls */}
-          <div className="flex justify-center">{renderControls()}</div>
-        </div>
-
-        {/* Timeline */}
-        <Card>
-          <CardHeader><CardTitle>Timeline</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {recipe.steps.map((step, index) => {
-              const isCompleted = isActiveSession && session.currentStepIndex > index;
-              const isCurrent = isActiveSession && session.currentStepIndex === index;
-              const Icon = isCompleted ? CheckCircle : isCurrent ? Circle : Dot;
-              return (
-                <div key={step.id} className={cn("flex items-center gap-3 text-sm", isCurrent && "font-bold", isCompleted && "text-muted-foreground line-through")}>
-                  <Icon className={cn("h-5 w-5 flex-shrink-0", isCurrent && "text-primary")} />
-                  <span className="flex-grow truncate">{step.description}</span>
-                  <span className="flex-shrink-0">{step.durationMinutes} min</span>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Overall Progress */}
-      {isActiveSession && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center mb-2 text-sm">
-              <span className="font-medium">Overall Progress</span>
-              <span className="text-muted-foreground">
-                Overall remaining: {formatTime(session.overallRemainingSec)}
-              </span>
+                  ) : (
+                     <div className="text-center py-8">
+                        <p className="text-lg text-muted-foreground">Press 'Start Session' to begin cooking.</p>
+                     </div>
+                  )}
+                </CardContent>
+              </Card>
+              <div className="flex justify-center">{renderControls()}</div>
             </div>
-            <Progress value={overallProgressPercent} aria-label={`${overallProgressPercent}% complete`} />
-          </CardContent>
-        </Card>
-      )}
-       {!isActiveSession && session && (
-        <div className="text-center p-8 border-2 border-dashed rounded-lg">
-            <h2 className="text-2xl font-bold text-green-600">Recipe Complete!</h2>
-            <p className="text-muted-foreground mt-2">Well done! You've finished the recipe.</p>
-            <Button onClick={handleEndSession} className="mt-4">Back to All Recipes</Button>
-        </div>
+
+            <Card>
+              <CardHeader><CardTitle>Timeline</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {recipe.steps.map((step, index) => {
+                  const isCompleted = isActiveSession && session.currentStepIndex > index;
+                  const isCurrent = isActiveSession && session.currentStepIndex === index;
+                  const Icon = isCompleted ? CheckCircle : isCurrent ? Circle : Dot;
+                  return (
+                    <div key={step.id} className={cn("flex items-center gap-3 text-sm", isCurrent && "font-bold", isCompleted && "text-muted-foreground line-through")}>
+                      <Icon className={cn("h-5 w-5 flex-shrink-0", isCurrent && "text-primary")} />
+                      <span className="flex-grow truncate">{step.description}</span>
+                      <span className="flex-shrink-0">{step.durationMinutes} min</span>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+
+          {isActiveSession && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center mb-2 text-sm">
+                  <span className="font-medium">Overall Progress</span>
+                  <span className="text-muted-foreground">
+                    Overall remaining: {formatTime(session.overallRemainingSec)}
+                  </span>
+                </div>
+                <Progress value={overallProgressPercent} aria-label={`${overallProgressPercent}% complete`} />
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
