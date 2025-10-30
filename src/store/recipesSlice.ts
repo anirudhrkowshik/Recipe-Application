@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Recipe } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { sampleRecipes } from '@/lib/sample-data';
 
 interface RecipesState {
   recipes: Recipe[];
@@ -12,12 +13,15 @@ const loadRecipesFromStorage = (): Recipe[] => {
   try {
     const serializedState = localStorage.getItem(RECIPES_STORAGE_KEY);
     if (serializedState === null) {
-      return [];
+      // If no data in storage, load sample recipes
+      return sampleRecipes;
     }
-    return JSON.parse(serializedState);
+    const parsed = JSON.parse(serializedState);
+    // Handle case where storage is empty array
+    return parsed.length > 0 ? parsed : sampleRecipes;
   } catch (err) {
     console.error("Could not load recipes from local storage", err);
-    return [];
+    return sampleRecipes; // Fallback to sample data on error
   }
 };
 
