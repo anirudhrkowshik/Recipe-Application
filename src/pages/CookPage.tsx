@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '@/store/store';
+import { RootState, AppDispatch, store } from '@/store/store';
 import { startSession, pauseSession, resumeSession, stopCurrentStep, tick, endSession } from '@/store/sessionSlice';
 import { toggleFavorite } from '@/store/recipesSlice';
 import { useInterval } from '@/hooks/useInterval';
