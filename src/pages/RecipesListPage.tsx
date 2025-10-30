@@ -58,8 +58,9 @@ const RecipesListPage = () => {
                 variant="outline"
                 value={difficultyFilters}
                 onValueChange={(value) => setDifficultyFilters(value)}
+                className="w-full justify-start"
               >
-                <ToggleGroupItem value="Easy">Easy</ToggleGroupItem>
+                <ToggleGroupItem value="Easy">Easy</Toggle_groupItem>
                 <ToggleGroupItem value="Medium">Medium</ToggleGroupItem>
                 <ToggleGroupItem value="Hard">Hard</ToggleGroupItem>
               </ToggleGroup>
