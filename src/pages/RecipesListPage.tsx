@@ -5,7 +5,6 @@ import { RootState } from '@/store/store';
 import { calculateTotalTime } from '@/lib/recipes';
 
 import { Button } from '@/components/ui/button';
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import RecipeCard from '@/components/RecipeCard';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -123,7 +122,6 @@ const RecipesListPage = () => {
           ))}
         </div>
       )}
-      <MadeWithDyad />
     </div>
   );
 };
