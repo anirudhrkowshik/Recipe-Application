@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-import { Recipe, Difficulty } from '@/types';
 import { calculateTotalTime } from '@/lib/recipes';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import RecipeCard from '@/components/RecipeCard';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 
 const RecipesListPage = () => {
   const recipes = useSelector((state: RootState) => state.recipes.recipes);
@@ -35,9 +35,16 @@ const RecipesListPage = () => {
     return filtered.sort((a, b) => {
       const timeA = calculateTotalTime(a);
       const timeB = calculateTotalTime(b);
-      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      return sortOrder === 'asc' ? timeA - timeB : timeB - a;
     });
   }, [recipes, difficultyFilters, sortOrder, searchTerm]);
+
+  const areFiltersActive = difficultyFilters.length > 0 || searchTerm !== '';
+
+  const handleClearFilters = () => {
+    setDifficultyFilters([]);
+    setSearchTerm('');
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -86,6 +93,14 @@ const RecipesListPage = () => {
               />
             </div>
           </div>
+          {areFiltersActive && (
+            <div className="mt-4">
+              <Button variant="ghost" onClick={handleClearFilters}>
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
